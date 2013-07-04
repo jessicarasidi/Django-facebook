@@ -4,7 +4,7 @@ from django_facebook import settings as facebook_settings, signals
 from django_facebook.connect import CONNECT_ACTIONS
 from django_facebook.forms import FacebookRegistrationFormUniqueEmail
 from django_facebook.utils import get_user_model, next_redirect, \
-    error_next_redirect
+    error_next_redirect, username_as_username_field
 from functools import partial
 from django.contrib.auth import get_backends
 
@@ -73,16 +73,25 @@ class FacebookRegistrationBackend(NooptRegistrationBackend):
         Create and immediately log in a new user.
 
         """
-        username, email, password = kwargs['username'], kwargs[
-            'email'], kwargs['password1']
-        # Create user doesn't accept additional parameters,
-        new_user = get_user_model(
-        ).objects.create_user(username, email, password)
+        if username_as_username_field():
+            username, email, password = kwargs['username'], kwargs[
+                'email'], kwargs['password1']
+            # Create user doesn't accept additional parameters,
+            new_user = get_user_model(
+            ).objects.create_user(username, email, password)
+            username_field = username
+        else:
+            email, password = kwargs[
+                'email'], kwargs['password1']
+            # Create user doesn't accept additional parameters,
+            new_user = get_user_model(
+            ).objects.create_user(email, password)
+            username_field = email
 
         signals.user_registered.send(sender=self.__class__,
                                      user=new_user,
                                      request=request)
-        authenticated_user = self.authenticate(request, username, password)
+        authenticated_user = self.authenticate(request, username_field, password)
         return authenticated_user
 
     def authenticate(self, request, username, password):

@@ -3,7 +3,7 @@ import json
 from django_facebook import settings as facebook_settings
 from django_facebook.utils import mass_get_or_create, cleanup_oauth_url, \
     get_profile_model, parse_signed_request, hash_key, try_get_profile, \
-    get_user_attribute
+    get_user_attribute, username_as_username_field
 from open_facebook.exceptions import OpenFacebookException
 from django_facebook.exceptions import FacebookException
 try:
@@ -264,6 +264,7 @@ class FacebookUserConverter(object):
         '''
         facebook_profile_data = self.facebook_profile_data()
         user_data = {}
+        username = username_as_username_field()
         try:
             user_data = self._convert_facebook_data(
                 facebook_profile_data, username=username)

@@ -1,4 +1,5 @@
 from django.utils.decorators import available_attrs
+from django.conf import settings
 from functools import wraps
 try:
     # using compatible_datetime instead of datetime only
@@ -652,3 +653,9 @@ def get_instance_for(purpose, *args, **kwargs):
     class_ = get_class_for(purpose)
     instance = class_(*args, **kwargs)
     return instance
+
+
+def username_as_username_field():
+    if get_user_model().USERNAME_FIELD != 'username':
+            return False
+    return True

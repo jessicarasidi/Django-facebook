@@ -6,7 +6,7 @@ Forms and validation code for user registration.
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from django_facebook.utils import get_user_model
+from django_facebook.utils import get_user_model, username_as_username_field
 
 attrs_dict = {'class': 'required'}
 
@@ -16,7 +16,8 @@ class FacebookRegistrationFormUniqueEmail(forms.Form):
     """
     Some basic validation, adapted from django registration
     """
-    username = forms.RegexField(regex=r'^\w+$',
+    if username_as_username_field():
+        username = forms.RegexField(regex=r'^\w+$',
                                 max_length=30,
                                 widget=forms.TextInput(attrs=attrs_dict),
                                 label=_("Username"),
@@ -31,19 +32,20 @@ class FacebookRegistrationFormUniqueEmail(forms.Form):
         widget=forms.PasswordInput(attrs=attrs_dict, render_value=False),
         label=_("Password (again)"))
 
-    def clean_username(self):
-        """
-        Validate that the username is alphanumeric and is not already
-        in use.
+    if username_as_username_field():
+        def clean_username(self):
+            """
+            Validate that the username is alphanumeric and is not already
+            in use.
 
-        """
-        try:
-            get_user_model().objects.get(
-                username__iexact=self.cleaned_data['username'])
-        except get_user_model().DoesNotExist:
-            return self.cleaned_data['username']
-        raise forms.ValidationError(
-            _("A user with that username already exists."))
+            """
+            try:
+                get_user_model().objects.get(
+                    username__iexact=self.cleaned_data['username'])
+            except get_user_model().DoesNotExist:
+                return self.cleaned_data['username']
+            raise forms.ValidationError(
+                _("A user with that username already exists."))
 
     def clean(self):
         """
